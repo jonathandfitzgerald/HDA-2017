@@ -178,7 +178,7 @@ crewlist$year = crewlist$ApproximateDeparture %>% as.character() %>% gsub(".*([0
 crewlist$first = crewlist$FullName %>% as.character() %>% gsub("^([A-Za-z]*),","\\2",.)
 crewlist$last = crewlist$FullName %>% as.character() %>% gsub(", (.*)","",.)
 
-
+crewlist$FullName
 
 ```
 
