@@ -26,7 +26,7 @@ I'm asking you to compose in R Markdown this semester, but we won't spend too mu
 As an RMD file, however, this is more than a flat text document: it's a program that you can run in R. R Markdown allows you to embed executable code into your writing. If you click the 'run' arrow in the gray box below, the code will run. You should see the results in your console window. Try that now.
 
 ```{r}
-2+2
+2+2+3
 5^32
 ```
 
