@@ -50,7 +50,7 @@ To install an R package, you can either click Tools --> Install Packages or run 
 
 ```{r}
 
-install.packages("tidyverse"")
+install.packages("tidyverse")
 
 ```
 
@@ -67,7 +67,10 @@ In the box below, write six lines of code to install and then load the packages 
 ```{r}
 
 
-
+library(dplyr)
+library(wordcloud)
+install.packages("tidytext")
+library(tidytext)
 
 ```
 
@@ -316,8 +319,8 @@ library(stringr)
 
 brown <- tibble(text=read_file("https://raw.githubusercontent.com/jonathandfitzgerald/s17hda/master/data/NarrativeWilliamWellsBrown.txt"))
 
-brown$text <- gsub("\r\n", " ", brown$text) %>%
-  gsub("([.!?])([A-Za-z])", "\1 \2", brown$text)
+brown$text <- gsub("\\r\\n", " ", brown$text) %>%
+  gsub("([.!?])([A-Za-z])", "\\1 \\2", brown$text)
 
 quotes <- "(\"[A-Za-z].*?\")"
 

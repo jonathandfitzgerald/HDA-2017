@@ -1,1 +1,5 @@
 library(dplyr)
+library(wordcloud)
+library(tidytext)
+library(tidyverse)
+library(stringr)
