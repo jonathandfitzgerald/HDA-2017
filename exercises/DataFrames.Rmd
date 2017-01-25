@@ -13,7 +13,7 @@ library(tidyverse)
 
 # Navigating Files in R
 
-If you've only browed files through a GUI you might not realize this, but your computer's directories can be invoked through paths that look much like URLs. To illustrate this, we're going to browse around in your Terminals for a few minutes before we jump back into R.
+If you've only browsed files through a GUI you might not realize this, but your computer's directories can be invoked through paths that look much like URLs. To illustrate this, we're going to browse around in your Terminals for a few minutes before we jump back into R.
 
 At any given time, R refers to a particular "working directory" on your hard drive. Any paths to data you construct take this working directory as their root. So if my working directory is `"Dropbox/Teaching/HDA/s17hda-github/"` then invoking `"/data/crewlists.csv"` would begin from the working directory and look for a subdirectory called `data` and then a file within that working directory. Many, many times problems importing or working with data can be tracked down to R looking in the wrong working directory. So, to check your working directory, you can run:
 
@@ -64,7 +64,9 @@ Let's not forget some of the basic ways of browsing data we discussed last week.
 
 ```{r}
 
-
+head(census)
+tail(census)
+head(census$TotalPopulation)
 
 ```
 
@@ -75,6 +77,9 @@ summary(census$Newspapers)
 summary(census$FreeColoredPopulation)
 ```
 
+## A Note about Pipes
+
+Next week we will introduce pipes more fully, which will enable you to combine many of the functions we will learn today and write code with fewer steps. For today, however, I really want you thinking about what how each function transforms your data, so we're going to take everything one step at a time.
 
 ## Subsetting columns
 
@@ -119,12 +124,21 @@ Finally (in this section), we can rearrange the dataframe. Keep in mind that `ar
 
 ```{r}
 census <- arrange(census, serials, Newspapers, Periodicals)
+
 ```
 
 You only need to specify one column for `arrange` to work, but if you specify more it will use them in sequence, much as you use the letters in words in sequence when sorting into alphabetical order (e.g. first sort by `serials`, then by `Newspapers`, then by `Periodicals`). You'll note that by default `arrange` sorts in ascending order. If we wanted to instead order this dataframe to bring the most active print economies to the top, we would add `desc` to our code:  
 
 ```{r}
 census <- arrange(census, desc(serials, Newspapers, Periodicals))
+```
+
+Okay: in the code block below, import the census data again (use a new variable name) and then select only 3-4 columns of interest. Then filter the dataframe by a value in one of those columns. 
+
+```{r}
+
+
+
 ```
 
 gsub to separate county and state for later grouping?
@@ -134,24 +148,64 @@ gsub to separate county and state for later grouping?
 
 Above we made some relatively minor changes to a dataframe, but in the next section we'll do a bit more. As we talk about different methods for manipulating the data in dataframes, the [Data Wrangling Cheat Sheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) will prove very helpful. We recommend you bookmark it, at least, and perhaps print it into a breviary you carry with you at all times for your R devotions. 
 
-change type of column data
+## Separate
 
-gather
+Let's start with `separate`, which will allow us to do something kind of like RegEx, but simpler, for colums we want to break apart that use a very consistent separator. The newly-renamed `county` column, for instance, actually includes both the county and the state, and since they are consistently divided by a comma and space, we can use the fuction below to separate them into two columns:
 
-spread
+```{r}
+census <- separate(census, county, into = c("county", "state"), sep = "\\, ")
+```
 
-group by
+That threw a few errors, though `tidyr` made the separation anyway. If you wanted to investigate one of those problematic observations, you could type in the console `census[1259,]` (or sustitute any of the other rows for 1259). This is another way of selecting particular rows. In this case we're not entering anything after the comma because we want to see all the columns, but you could instead type `census[1259,1:2]` to see row 1259, columns 1-2.
 
-filter
+## Gather
 
-mutate
+For these next functions we're going to reimport our census data but select a different set of columns: those describing the racial/ethnic/gender/age identification of the populations in each county. The current format of this data is "wide," meaning there are many columns of variables. For certain kinds of analyses, these column names are themselves variables, representing the identities of citizens, at least insofar as the census taker appraised them. We might want to `gather` our data into a "long" format, which means there will be many more rows but fewer columns, which will prove useful for certain kinds of analyses. Let's run the code below and talk through it together. If you want to see what each line is doing, run them using ctl-enter rather than the run button.
+
+```{r}
+census <- read.csv(file = "./data/1840-census-data.csv")
+census <- select(census, 1,6:81)
+census <- rename(census, county = QualifyingAreaName)
+census_long <- gather(census, "identification", "count", 2:77)
+census_long <- separate(census_long, county, into = c("county", "state"), sep = "\\, ")
+census_long <- na.omit(census_long)
+```
+
+## Group_by
+
+Why would we do this? Well, for one we could now use the `group_by()` function on our `identification` column to group all observations of the same identification, and then perform operations on those groups. 
+
+```{r}
+census_long <- group_by(census_long, identification)
+census_ids <- summarize(census_long, total_ids = sum(count))
+```
+
+That's possibly interesting, but maybe we want to group by identification and then by state, so we can see how these categories break down by state. Fortunately we now have a state column, so we can do this:
+
+```{r}
+census_long <- group_by(census_long, state, identification)
+census_ids <- summarize(census_long, total_ids = sum(count))
+```
+
+## Spread
+
+Spread, as you might imagine, does just the opposite of gather. It takes long data and makes it wide. So we can run the following to reshape our `census_long` dataframe into something very like the wide dataframe with which we began.
+
+```{r}
+census_wide <- spread(census_long, identification, count)
+View(census_wide)
+```
 
 
 # Exercises
 
-1. Read in another file
+1. Create a new column that shows the ratio of `FreeColoredPopulation` to `SlavePopulation` in each county. You may need to repeat some of the import steps above, and you can use a new variable if you wish. 
 
-2. Regex on a colum using gsub?
+2. Create a "long" dataframe with columns for "publication_type" (e.g. "Newspaper") and "count". 
 
-3. How many illiterate white men lived in Alabama in 1840?
+3. Something with importing their own data and manipulating it. Perhaps ask them to id if it's wide or long data and whether its current format is right for what they need.
+
+# Other?
+
+change type of column data?
 
