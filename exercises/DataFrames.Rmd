@@ -1,0 +1,157 @@
+---
+title: "dataframes"
+author: "Ryan Cordell"
+date: "1/20/2017"
+output: html_document
+---
+
+For today's workshop, we're going to load in all the libraries we need right off the bat, so we don't have the confusion of last week. If you find you don't have one of these installed, then install it! Most of what we do today uses functions from the packages `tidyr` and `dplyr`, which are both included in `tidyverse`. Today I won't be putting everything in executable codeblocks. If there's no run button, remember how to run lines of code manually!
+
+```{r}
+library(tidyverse)
+```
+
+# Navigating Files in R
+
+If you've only browed files through a GUI you might not realize this, but your computer's directories can be invoked through paths that look much like URLs. To illustrate this, we're going to browse around in your Terminals for a few minutes before we jump back into R.
+
+At any given time, R refers to a particular "working directory" on your hard drive. Any paths to data you construct take this working directory as their root. So if my working directory is `"Dropbox/Teaching/HDA/s17hda-github/"` then invoking `"/data/crewlists.csv"` would begin from the working directory and look for a subdirectory called `data` and then a file within that working directory. Many, many times problems importing or working with data can be tracked down to R looking in the wrong working directory. So, to check your working directory, you can run:
+
+```{r}
+getwd()
+```
+
+If the working directory is not what you want, you can set it in two ways: through the menus for Session --> Set Working Directory or through the command below. The path to the directory you want should go inside the quotation marks. Remember that you can use your tab key to help you autocomplete fields in R; that can be very useful for getting to precisely the right folder on your hard drive.
+
+```{r}
+setwd("")
+```
+
+When you construct a file path in R, your working directory can be invoked with `.` and your computers home directory can be invoked with `~`. You can also tell R Studio to look backwards in the directory structure with `..` We'll experiment with this briefly over in the console. Keep in mind too that you can browse your files in in the `Files` pane of RStudio: it's over there next to `Environment`.
+
+# Getting Help with Functions
+
+Here's another useful thing to know. If you want to know what a particular function does, you can access help documentation using `?` or `help()`. So if you wanted to know what the `spread` function (from the package `tidyr`) does, you could run:
+
+?spread
+
+*or* 
+
+help(spread)
+
+
+# Reading in Tabular Data
+
+Depending on the structure of the data you wish to read into R, you will typically use `read.table`, `read.csv`, or `scan`. You can sometimes read data in from the web directly, as we did last week, but most often you will have data stored on your computer that you wish to bring into the R environment. Often, if there is something even slightly askew about your input data, `read.table` will fail. This may be frustrating, but this failure is  a general feature of data analysis: programs that don't receive *exactly* the input the expect will simply fail to work, usually "throwing" an error message of some sort. You may have to spend some time troubleshooting your data itself to figure out why it won't import into R.
+
+If you have a file previously saved in the csv (comma-separated-value) format, it may be fast to read it it using the `read.csv` function. (This is simply `read.table` with a certain set of constraints.)
+
+In the example below, you'll need to modify the path in the quotation marks to navigate the folder in your file system to where you have stored the data files for this class. 
+
+```{r}
+census <- read.csv(file = "./data/1840-census-data.csv")
+```
+
+Note: we could write out the file path in other ways, depending on precisely how you've organized things.  
+
+# Browsing Tabular Data
+
+If you type `View(clusters)` or click the table icon next to `clusters` in the Environment pane, you can visually browse the dataframe we just created.
+
+When we work with dataframes, we can operate on individual columns using the `$` operator. If we type `clusters$text` in the console, for instance, it would print all the values from that one column. We usually won't use this to print, however, but to select particular columns to operate on in other ways.
+
+Let's not forget some of the basic ways of browsing data we discussed last week. Can you write code below that print the first lines of the `census` dataframe? The last? Can you print the first or last lines of specific columns in `census`?
+
+```{r}
+
+
+
+```
+
+There are a few other fuctions worth knowing right off the bat. Run the code below: what does `summary` do?
+
+```{r}
+summary(census$Newspapers)
+summary(census$FreeColoredPopulation)
+```
+
+
+## Subsetting columns
+
+This is a very wide dataframe of census data. In fact, it's a bit too wide for R studio, which will only display 100 columns in the table viewer; this table has 113 columns. For any given analysis task, we probably don't need all of the columns in such a wide dataframe. Fortunately R and the `tidyverse` packages give us lots of ways to pare down the data we're working with. 
+
+Remember that last week we talked about changing variables. That's one way to pare down a dataset: essentially we invoke the dataframe, select only a few columns of it using the `select` function in `dplyr`, and replace the whole variable with just those selected columns. That would look like this:
+
+```{r}
+census <- select(census, QualifyingAreaName, Newspapers, Newspapers_Daily, Newspapers_Weekly, Newspapers_SemiTriWeekly, Periodicals, PrintingOffices, Binderies, NumberofPersonsEmployedinPrintingBinding)
+```
+
+Now we have only 9 variables in our dataframe, which is focused on the data recorded about newspapers and printing in the census. In this case we overwrote the whole census variable with this smaller dataframe, but we could have created a new variable focused on printing (say `censusPrinting`) and retained the larger `census` variable as well. 
+
+If you know the data you're importing well, you can also select particular columns on import. I further truncated the columns below so you can see a difference:
+
+```{r}
+census <- read.csv(file="./data/1840-census-data.csv")[ , c("QualifyingAreaName", "Newspapers", "Newspapers_Daily", "Newspapers_Weekly", "Newspapers_SemiTriWeekly", "Periodicals", "PrintingOffices")]
+```
+
+We can also rename columns with, you guessed it, the `rename` function. That first column in `census` has an awkward name, so let's just change it:
+
+```{r}
+census <- rename(census, county = QualifyingAreaName)
+```
+
+There are also ways to subset by rows that meet particular conditions, as in:
+
+```{r}
+printCenters <- filter(census, PrintingOffices >= 5)
+```
+
+We can also add new columns with `mutate`. These new columns can include an entirely new bit of data we wish to add (this can be tricky; we can talk more about what this might mean in person) or can be derived from operations made on other columns, as in:
+
+```{r}
+census <- mutate(census, serials = Newspapers + Periodicals)
+head(census$serials)
+```
+
+Can you see what happened there?
+
+Finally (in this section), we can rearrange the dataframe. Keep in mind that `arrange` reorders the actual dataframe permanently, or as permanently as is possible in a variable. In later weeks we'll learn how to order things on the fly for particular operations without actually changing the structure of the dataframe itself. To sort by the number of serials in each county, we could write:
+
+```{r}
+census <- arrange(census, serials, Newspapers, Periodicals)
+```
+
+You only need to specify one column for `arrange` to work, but if you specify more it will use them in sequence, much as you use the letters in words in sequence when sorting into alphabetical order (e.g. first sort by `serials`, then by `Newspapers`, then by `Periodicals`). You'll note that by default `arrange` sorts in ascending order. If we wanted to instead order this dataframe to bring the most active print economies to the top, we would add `desc` to our code:  
+
+```{r}
+census <- arrange(census, desc(serials, Newspapers, Periodicals))
+```
+
+gsub to separate county and state for later grouping?
+
+
+# Manipulating Dataframes
+
+Above we made some relatively minor changes to a dataframe, but in the next section we'll do a bit more. As we talk about different methods for manipulating the data in dataframes, the [Data Wrangling Cheat Sheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) will prove very helpful. We recommend you bookmark it, at least, and perhaps print it into a breviary you carry with you at all times for your R devotions. 
+
+change type of column data
+
+gather
+
+spread
+
+group by
+
+filter
+
+mutate
+
+
+# Exercises
+
+1. Read in another file
+
+2. Regex on a colum using gsub?
+
+3. How many illiterate white men lived in Alabama in 1840?
+
