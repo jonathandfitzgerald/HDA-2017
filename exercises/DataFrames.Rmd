@@ -49,7 +49,7 @@ If you have a file previously saved in the csv (comma-separated-value) format, i
 In the example below, you'll need to modify the path in the quotation marks to navigate the folder in your file system to where you have stored the data files for this class. 
 
 ```{r}
-census <- read.csv(file = "./data/1840-census-data.csv")
+census2 <- read.csv(file = "./data/1840-census-data.csv")
 ```
 
 Note: we could write out the file path in other ways, depending on precisely how you've organized things.  
@@ -137,7 +137,9 @@ Okay: in the code block below, import the census data again (use a new variable 
 
 ```{r}
 
-
+censusPop <- read.csv(file="./data/1840-census-data.csv")[ , c("QualifyingAreaName", "TotalPopulation", "Male", "Female")]
+censusPop %>% arrange(desc(TotalPopulation)) %>% head
+censusPopLarge = censusPop %>% filter(TotalPopulation > 75000)
 
 ```
 
