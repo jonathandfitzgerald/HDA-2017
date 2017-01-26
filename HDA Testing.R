@@ -19,3 +19,13 @@ crime_ids <- summarize(crime_long, total_ids = sum(count))
 # Spread
 crime_wide <- spread(crime_long, identification, count)
 View(census_wide)
+
+
+#BOOK TITLES
+books <- read_tsv(file = "./data/booktitles-sub.tsv",col_names = TRUE)
+
+books <- books %>% group_by(author) %>% mutate(count=n()) %>% arrange(-count)
+
+books <- books %>% filter(lc1 == "PZ") %>% arrange(-year)
+
+books <- books %>% filter(lc1 != "NULL") %>% group_by(lc1) %>% arrange(-year)

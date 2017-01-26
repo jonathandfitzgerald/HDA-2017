@@ -24,7 +24,7 @@ getwd()
 If the working directory is not what you want, you can set it in two ways: through the menus for Session --> Set Working Directory or through the command below. The path to the directory you want should go inside the quotation marks. Remember that you can use your tab key to help you autocomplete fields in R; that can be very useful for getting to precisely the right folder on your hard drive.
 
 ```{r}
-setwd("~/Documents/Northeastern/HDA-2017")
+setwd("")
 ```
 
 When you construct a file path in R, your working directory can be invoked with `.` and your computers home directory can be invoked with `~`. You can also tell R Studio to look backwards in the directory structure with `..` We'll experiment with this briefly over in the console. Keep in mind too that you can browse your files in in the `Files` pane of RStudio: it's over there next to `Environment`.
@@ -64,9 +64,7 @@ Let's not forget some of the basic ways of browsing data we discussed last week.
 
 ```{r}
 
-head(census)
-tail(census)
-head(census$TotalPopulation)
+
 
 ```
 
@@ -124,7 +122,6 @@ Finally (in this section), we can rearrange the dataframe. Keep in mind that `ar
 
 ```{r}
 census <- arrange(census, serials, Newspapers, Periodicals)
-
 ```
 
 You only need to specify one column for `arrange` to work, but if you specify more it will use them in sequence, much as you use the letters in words in sequence when sorting into alphabetical order (e.g. first sort by `serials`, then by `Newspapers`, then by `Periodicals`). You'll note that by default `arrange` sorts in ascending order. If we wanted to instead order this dataframe to bring the most active print economies to the top, we would add `desc` to our code:  
@@ -137,14 +134,9 @@ Okay: in the code block below, import the census data again (use a new variable 
 
 ```{r}
 
-censusPop <- read.csv(file="./data/1840-census-data.csv")[ , c("QualifyingAreaName", "TotalPopulation", "Male", "Female")]
-censusPop %>% arrange(desc(TotalPopulation)) %>% head
-censusPopLarge = censusPop %>% filter(TotalPopulation > 75000)
+
 
 ```
-
-gsub to separate county and state for later grouping?
-
 
 # Manipulating Dataframes
 
@@ -165,7 +157,7 @@ That threw a few errors, though `tidyr` made the separation anyway. If you wante
 For these next functions we're going to reimport our census data but select a different set of columns: those describing the racial/ethnic/gender/age identification of the populations in each county. The current format of this data is "wide," meaning there are many columns of variables. For certain kinds of analyses, these column names are themselves variables, representing the identities of citizens, at least insofar as the census taker appraised them. We might want to `gather` our data into a "long" format, which means there will be many more rows but fewer columns, which will prove useful for certain kinds of analyses. Let's run the code below and talk through it together. If you want to see what each line is doing, run them using ctl-enter rather than the run button.
 
 ```{r}
-census <- read.csv(file = "../data/1840-census-data.csv")
+census <- read.csv(file = "./data/1840-census-data.csv")
 census <- select(census, 1,6:81)
 census <- rename(census, county = QualifyingAreaName)
 census_long <- gather(census, "identification", "count", 2:77)
@@ -198,51 +190,10 @@ census_wide <- spread(census_long, identification, count)
 View(census_wide)
 ```
 
-
 # Exercises
 
 1. Create a new column that shows the ratio of `FreeColoredPopulation` to `SlavePopulation` in each county. You may need to repeat some of the import steps above, and you can use a new variable if you wish. 
-
-```{r}
-
-slaveCount = census[c("county", "FreeColoredPopulation", "SlavePopulation")]
-
-slaveCount = slaveCount %>% mutate("ratio" = round(FreeColoredPopulation/SlavePopulation, digits=2)) %>% arrange(-ratio)
-
-
-```
-
 2. Create a "long" dataframe with columns for "publication_type" (e.g. "Newspaper") and "count". 
-
-```{r}
-
-census_pub <- select(census, QualifyingAreaName, Newspapers, Newspapers_Daily, Newspapers_Weekly, Newspapers_SemiTriWeekly, Periodicals)
-census_pub <- separate(census_pub, QualifyingAreaName, into = c("county", "state"), sep = "\\, ")
-census_pub$county = NULL
-census_pub[is.na(census_pub)] <- 0
-census_pub_long <- gather(census_pub,"publication_type", "count", -state)
-census_pub_long <- group_by(census_pub_long,state) %>% summarise(total_publications=sum(count))
-
-
-#Which state has the most literate whites (over 20)
-
-census_all <- read.csv(file = "data/1840-census-data.csv")
-census_all <- census_all[ , c("QualifyingAreaName", "TotalPopulation", "LiterateWhiteAge20andOver")]
-census_all <- separate(census_all, QualifyingAreaName, into = c("county", "state"), sep = "\\, ")
-census_pop <- census_all %>% group_by(state) %>% summarise(total_pop=sum(TotalPopulation))
-census_lit <- census_all %>% group_by(state) %>% summarise(total_literate=sum(LiterateWhiteAge20andOver))
-census_litpop <- inner_join(census_pop,census_lit)
-census_litpop <- arrange(census_litpop, -total_literate)
-
-
-#Which state has the most literate whites per capita
-census_litpop <- census_litpop %>% mutate("ratio" = round(total_literate/total_pop, digits=2)*100) %>% arrange(-ratio)
-
-```
-
-3. Something with importing their own data and manipulating it. Perhaps ask them to id if it's wide or long data and whether its current format is right for what they need.
-
-# Other?
-
-change type of column data?
-
+3. Determine the state (not the county!) with the highest population of literate whites over 20 years old, then determine the state with the highest ratio of literate whites to general population.
+4. Read in `booktitles-sub.tsv`. You won't be able to use `read.csv` for this tsv file. See if you can figure out how to import a TSV using [Stack Overflow](http://stackoverflow.com/) or [RSeek](http://rseek.org/). Within this dataset, which year saw the most publications? What author was most prolific?
+5. Reach goal: What is the oldest children's book in `booktitles-sub.tsv`?
