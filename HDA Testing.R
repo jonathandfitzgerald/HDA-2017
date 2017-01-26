@@ -1,9 +1,14 @@
-census = X1840_census_data
+crime <- read.csv(file = "./data/ma-crime.csv",na="0")
+crime[is.na(crime)] <- 0
 
-gathertest = gather(census, location, value, TotalPopulation)
+crime_long <- gather(crime, "identification", "count", -1)
+crime_long$count = as.integer(crime_long$count)
 
-spreadtest = gathertest %>% group_by(title)
+crime_long <- group_by(crime_long, identification)
+crime_ids <- summarize(crime_long, total_ids = sum(count))
 
-spreadtest = spread(spreadtest, title, value, fill = NA, drop = TRUE )
+crime_long <- group_by(crime_long, City, identification)
+crime_ids <- summarize(crime_long, total_ids = sum(count))
 
-rm(gathertest)
+crime_wide <- spread(crime_long, identification, count)
+View(census_wide)

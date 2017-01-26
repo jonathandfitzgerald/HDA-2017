@@ -24,7 +24,7 @@ getwd()
 If the working directory is not what you want, you can set it in two ways: through the menus for Session --> Set Working Directory or through the command below. The path to the directory you want should go inside the quotation marks. Remember that you can use your tab key to help you autocomplete fields in R; that can be very useful for getting to precisely the right folder on your hard drive.
 
 ```{r}
-setwd("")
+setwd("~/Documents/Northeastern/HDA-2017")
 ```
 
 When you construct a file path in R, your working directory can be invoked with `.` and your computers home directory can be invoked with `~`. You can also tell R Studio to look backwards in the directory structure with `..` We'll experiment with this briefly over in the console. Keep in mind too that you can browse your files in in the `Files` pane of RStudio: it's over there next to `Environment`.
