@@ -29,3 +29,24 @@ books <- books %>% group_by(author) %>% mutate(count=n()) %>% arrange(-count)
 books <- books %>% filter(lc1 == "PZ") %>% arrange(-year)
 
 books <- books %>% filter(lc1 != "NULL") %>% group_by(lc1) %>% arrange(-year)
+
+L = c(2:6)
+test = census_pub[all(census_pub[2:6]) != "0",]
+
+?subset
+
+test = subset(test, census_pub[2:6] == "0", select = 1:6)
+
+
+set_of_interest <- c(2:6)
+test <- census_pub[any(census_pub[2:6])==0,]
+
+
+test <- sapply(census_pub[2:6], mean)
+
+
+row_sub = apply(census_pub[2:6], 1, function(row) any(row !=0 ))
+test = census_pub[row_sub,]
+
+class(row_sub)
+?logical
